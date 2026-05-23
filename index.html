@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>امتحان تكنولوجيا المعلومات – الصف الثامن</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a14;--sf:#12121f;--acc:#4cc9f0;--grn:#4ade80;--red:#f87171;--yel:#fbbf24;--pur:#c084fc;--txt:#e8e8f4;--mut:#6b6b8a}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* ── INTRO ── */
+#intro{align-items:center;justify-content:center;padding:28px 20px;
+  background:radial-gradient(ellipse at top,#1a1a3e 0%,var(--bg) 70%);overflow-y:auto}
+.intro-card{background:var(--sf);border:1px solid rgba(76,201,240,.2);border-radius:20px;
+  padding:28px 24px;max-width:480px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.intro-logo{font-size:56px;text-align:center;display:block;animation:floatE 2.5s ease-in-out infinite;margin-bottom:12px}
+.intro-title{font-size:20px;font-weight:900;color:#fff;text-align:center;margin-bottom:4px}
+.intro-sub{font-size:12px;color:var(--mut);text-align:center;margin-bottom:22px;line-height:1.8}
+
+/* name input */
+.field-label{font-size:12px;color:var(--acc);margin-bottom:6px;font-weight:700;letter-spacing:.4px}
+.name-input{width:100%;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Cairo',sans-serif;
+  color:var(--txt);outline:none;transition:border-color .2s;margin-bottom:20px}
+.name-input:focus{border-color:var(--acc)}
+.name-input::placeholder{color:var(--mut)}
+
+/* duration selector */
+.dur-presets{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.dpbtn{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.09);
+  border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;
+  font-family:'Cairo',sans-serif;color:var(--txt);transition:all .18s}
+.dpbtn:hover{background:rgba(76,201,240,.08);border-color:rgba(76,201,240,.4)}
+.dpbtn.sel{background:rgba(76,201,240,.14);border-color:var(--acc);color:#fff}
+.dpbtn .dp-min{font-size:16px;font-weight:900;display:block;color:var(--acc)}
+.dpbtn .dp-lbl{font-size:10px;color:var(--mut)}
+
+/* custom duration */
+.custom-row{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.custom-row input{flex:1;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.09);
+  border-radius:10px;padding:10px 14px;font-size:14px;font-family:'Cairo',sans-serif;
+  color:var(--txt);outline:none;transition:border-color .2s}
+.custom-row input:focus{border-color:var(--acc)}
+.custom-row span{font-size:12px;color:var(--mut);white-space:nowrap}
+
+/* per-q preview */
+.perq-box{background:rgba(76,201,240,.07);border:1px solid rgba(76,201,240,.25);
+  border-radius:10px;padding:10px 14px;margin-bottom:20px;display:none;
+  align-items:center;gap:10px}
+.perq-box.show{display:flex}
+.perq-emoji{font-size:22px;flex-shrink:0}
+.perq-txt{font-size:12px;color:var(--txt);line-height:1.6}
+.perq-val{color:var(--acc);font-weight:900;font-size:15px}
+
+.start-btn{width:100%;background:linear-gradient(135deg,var(--acc),#0077b6);color:#fff;
+  border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:900;
+  font-family:'Cairo',sans-serif;cursor:pointer;
+  box-shadow:0 6px 24px rgba(76,201,240,.35);transition:all .2s;opacity:.5;pointer-events:none}
+.start-btn.ready{opacity:1;pointer-events:auto}
+.start-btn.ready:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(76,201,240,.45)}
+
+/* ── QUIZ ── */
+#quiz{padding:0}
+.qhdr{background:var(--sf);border-bottom:1px solid rgba(255,255,255,.06);
+  padding:10px 14px;position:sticky;top:0;z-index:50}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px}
+.qctr{font-size:11px;color:var(--mut);white-space:nowrap}
+.qctr strong{color:var(--acc);font-size:13px}
+.hdr-name{font-size:11px;color:var(--grn);font-weight:700;
+  background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);
+  border-radius:20px;padding:2px 10px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:120px}
+.streak{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+  background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.22);
+  border-radius:20px;padding:2px 9px;transition:all .3s;white-space:nowrap}
+.streak.hot{background:rgba(251,191,36,.2);box-shadow:0 0 12px rgba(251,191,36,.3)}
+.pbar{height:4px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--acc),#0077b6);border-radius:10px;transition:width .6s}
+
+.qbody{flex:1;padding:13px;display:flex;flex-direction:column;gap:12px;
+  max-width:680px;margin:0 auto;width:100%}
+
+/* TIMER ROW */
+.trow{display:flex;align-items:center;gap:12px;background:var(--sf);border-radius:13px;padding:11px 15px}
+.tsvgw{position:relative;width:76px;height:76px;flex-shrink:0}
+.tsvg{transform:rotate(-90deg)}
+.tbg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:7}
+.tarc{fill:none;stroke:var(--acc);stroke-width:7;stroke-linecap:round;
+  stroke-dasharray:213.6;stroke-dashoffset:0;transition:stroke .4s}
+.tnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:19px;font-weight:900}
+.tinfo{flex:1;min-width:0}
+.tunit{font-size:9px;color:var(--mut);margin-bottom:3px;letter-spacing:.3px}
+.tscore{font-size:11px;font-weight:600}
+.temoji{font-size:20px;flex-shrink:0;animation:floatE 1.8s ease-in-out infinite}
+
+/* QUESTION */
+.qbox{background:var(--sf);border-radius:13px;padding:16px;
+  border:1px solid rgba(255,255,255,.06);animation:slideIn .35s cubic-bezier(.4,0,.2,1)}
+.qtag{font-size:9px;color:var(--acc);letter-spacing:.3px;margin-bottom:7px}
+.qtext{font-size:14px;line-height:1.9;font-weight:700;color:#fff}
+
+/* CHOICES */
+.choices{display:flex;flex-direction:column;gap:7px}
+.cbtn{display:flex;align-items:flex-start;gap:10px;
+  background:var(--sf);border:1.5px solid rgba(255,255,255,.07);
+  border-radius:11px;padding:11px 12px;cursor:pointer;
+  font-size:13px;color:var(--txt);font-family:'Cairo',sans-serif;
+  text-align:right;line-height:1.6;transition:all .16s;width:100%}
+.cbtn:hover:not(.locked){background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.18);transform:translateX(-2px)}
+.cbtn.locked{cursor:default;transform:none!important}
+.cbtn.selected{background:rgba(76,201,240,.09);border-color:rgba(76,201,240,.4)}
+.cbtn.correct{background:rgba(74,222,128,.11);border-color:rgba(74,222,128,.5);animation:cpulse .4s ease}
+.cbtn.wrong{background:rgba(248,113,113,.11);border-color:rgba(248,113,113,.5);animation:shk .4s ease}
+.clbl{width:25px;height:25px;min-width:25px;border-radius:6px;
+  background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:11px;color:var(--mut);transition:all .16s;flex-shrink:0;margin-top:2px}
+.cbtn.selected .clbl{background:rgba(76,201,240,.22);color:var(--acc)}
+.cbtn.correct .clbl{background:rgba(74,222,128,.28);color:var(--grn)}
+.cbtn.wrong   .clbl{background:rgba(248,113,113,.28);color:var(--red)}
+
+/* FEEDBACK */
+#fb{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:200;pointer-events:none;opacity:0;transition:opacity .15s}
+#fb.show{opacity:1}
+.fbemoji{font-size:88px;animation:fbpop .45s cubic-bezier(.17,.67,.35,1.4)}
+
+/* CONFETTI */
+#conf{position:fixed;inset:0;pointer-events:none;z-index:180;overflow:hidden}
+.cdot{position:absolute;top:-12px;border-radius:2px;animation:cfall 1.3s ease-in forwards}
+@keyframes cfall{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(540deg);opacity:0}}
+
+/* RESULTS */
+#results{align-items:center;padding:22px 16px 40px;overflow-y:auto;
+  background:radial-gradient(ellipse at top,#1a1a3e 0%,var(--bg) 70%)}
+.rinner{max-width:680px;width:100%}
+.rtrophy{font-size:72px;text-align:center;display:block;animation:bounceIn .6s cubic-bezier(.17,.67,.35,1.3)}
+.rscore{font-size:50px;font-weight:900;color:var(--acc);text-align:center;margin:5px 0}
+.rname{text-align:center;font-size:14px;color:var(--grn);font-weight:700;margin-bottom:2px}
+.rgrade{text-align:center;font-size:16px;font-weight:800;color:#fff;margin-bottom:3px}
+.rdetail{text-align:center;font-size:11px;color:var(--mut);margin-bottom:22px;line-height:1.8}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.rcard{background:var(--sf);border-radius:11px;padding:11px;text-align:center;border:1px solid rgba(255,255,255,.07)}
+.rcard .rv{font-size:22px;font-weight:900;margin-bottom:2px}
+.rcard .rl{font-size:10px;color:var(--mut)}
+.ubd{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.ubrow{background:var(--sf);border-radius:11px;padding:9px 13px;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.06)}
+.ubicon{font-size:17px;flex-shrink:0}
+.ubinfo{flex:1;min-width:0}
+.ubname{font-size:11px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ubbar{height:4px;background:rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
+.ubfill{height:100%;border-radius:10px;transition:width .9s ease}
+.ubsc{font-size:12px;font-weight:800;flex-shrink:0}
+.retrybtn{width:100%;background:linear-gradient(135deg,var(--acc),#0077b6);color:#fff;
+  border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:900;
+  font-family:'Cairo',sans-serif;cursor:pointer;margin-top:4px;
+  box-shadow:0 5px 18px rgba(76,201,240,.3);transition:transform .2s}
+.retrybtn:hover{transform:translateY(-2px)}
+
+/* ANIMATIONS */
+@keyframes floatE{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
+@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes cpulse{0%{transform:scale(1)}50%{transform:scale(1.015)}100%{transform:scale(1)}}
+@keyframes fbpop{from{transform:scale(.3) rotate(-15deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes bounceIn{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.12)}80%{transform:scale(.96)}100%{transform:scale(1);opacity:1}}
+@keyframes pulseglow{0%,100%{box-shadow:0 0 0 rgba(248,113,113,0)}50%{box-shadow:0 0 16px rgba(248,113,113,.4)}}
+@keyframes sbounce{0%{transform:scale(1)}50%{transform:scale(1.22)}100%{transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<!-- ════════════ INTRO ════════════ -->
+<div class="screen active" id="intro">
+  <div class="intro-card">
+    <span class="intro-logo">🎓</span>
+    <div class="intro-title">امتحان تكنولوجيا المعلومات</div>
+    <div class="intro-sub">الصف الثامن الأساسي &nbsp;•&nbsp; 200 سؤال &nbsp;•&nbsp; 4 خيارات</div>
+
+    <!-- Name -->
+    <div class="field-label">👤 اسم الطالب</div>
+    <input class="name-input" id="nameInput" type="text"
+           placeholder="أدخل اسمك الكامل هنا..." oninput="checkReady()">
+
+    <!-- Duration presets -->
+    <div class="field-label">⏱ مدة الامتحان الكاملة</div>
+    <div class="dur-presets" id="presets">
+      <button class="dpbtn" onclick="pickDur(30,this)"><span class="dp-min">30</span><span class="dp-lbl">دقيقة</span></button>
+      <button class="dpbtn" onclick="pickDur(45,this)"><span class="dp-min">45</span><span class="dp-lbl">دقيقة</span></button>
+      <button class="dpbtn" onclick="pickDur(60,this)"><span class="dp-min">60</span><span class="dp-lbl">دقيقة</span></button>
+      <button class="dpbtn" onclick="pickDur(90,this)"><span class="dp-min">90</span><span class="dp-lbl">دقيقة</span></button>
+      <button class="dpbtn" onclick="pickDur(120,this)"><span class="dp-min">120</span><span class="dp-lbl">دقيقة</span></button>
+      <button class="dpbtn" id="customBtn" onclick="toggleCustom(this)"><span class="dp-min">✏️</span><span class="dp-lbl">مخصص</span></button>
+    </div>
+
+    <!-- Custom input -->
+    <div class="custom-row" id="customRow" style="display:none">
+      <input type="number" id="customMin" min="10" max="300" placeholder="عدد الدقائق"
+             oninput="pickDurCustom(this.value)">
+      <span>دقيقة (10 – 300)</span>
+    </div>
+
+    <!-- Per-question preview -->
+    <div class="perq-box" id="perqBox">
+      <div class="perq-emoji">⚡</div>
+      <div class="perq-txt">
+        مدة الامتحان: <span id="pqTotal" class="perq-val">—</span> دقيقة
+        &nbsp;|&nbsp;
+        كل سؤال يحصل على <span id="pqSec" class="perq-val">—</span> ثانية
+      </div>
+    </div>
+
+    <button class="start-btn" id="startBtn" onclick="startQuiz()">🚀 ابدأ الامتحان</button>
+  </div>
+</div>
+
+<!-- ════════════ QUIZ ════════════ -->
+<div class="screen" id="quiz">
+  <div class="qhdr">
+    <div class="hdr-top">
+      <div class="qctr">سؤال <strong id="qnum">1</strong> / 200</div>
+      <div class="hdr-name" id="hdrName"></div>
+      <div class="streak" id="streak">⚡ <span id="sv">0</span> متتالي</div>
+    </div>
+    <div class="pbar"><div class="pfill" id="prog" style="width:0%"></div></div>
+  </div>
+  <div class="qbody">
+    <div class="trow">
+      <div class="tsvgw">
+        <svg class="tsvg" viewBox="0 0 76 76" width="76" height="76">
+          <circle class="tbg" cx="38" cy="38" r="32"/>
+          <circle class="tarc" id="tarc" cx="38" cy="38" r="32"/>
+        </svg>
+        <div class="tnum" id="tnum">—</div>
+      </div>
+      <div class="tinfo">
+        <div class="tunit" id="tunit">الوحدة الأولى</div>
+        <div class="tscore" id="lscore">✅ 0 صحيح &nbsp;|&nbsp; ❌ 0 خطأ</div>
+      </div>
+      <div class="temoji" id="temoji">⏳</div>
+    </div>
+    <div class="qbox" id="qbox">
+      <div class="qtag" id="qtag">💻 الوحدة الأولى</div>
+      <div class="qtext" id="qtext">...</div>
+    </div>
+    <div class="choices" id="choices"></div>
+  </div>
+</div>
+
+<!-- ════════════ RESULTS ════════════ -->
+<div class="screen" id="results">
+  <div class="rinner">
+    <span class="rtrophy" id="rtrophy">🏆</span>
+    <div class="rscore" id="rscore">0/200</div>
+    <div class="rname" id="rname"></div>
+    <div class="rgrade" id="rgrade"></div>
+    <div class="rdetail" id="rdetail"></div>
+    <div class="rgrid" id="rgrid"></div>
+    <div class="ubd" id="ubd"></div>
+    <button class="retrybtn" onclick="location.reload()">🔄 إعادة الامتحان</button>
+  </div>
+</div>
+
+<div id="fb"><div class="fbemoji" id="fbemoji"></div></div>
+<div id="conf"></div>
+
+<script>
+const UNITS=[
+  {name:"بنية الحاسوب وأنظمة العد",icon:"💻",color:"#4cc9f0"},
+  {name:"تحرير الصور والفيديو",icon:"🖼️",color:"#4ade80"},
+  {name:"الشبكات والإنترنت",icon:"🌐",color:"#f472b6"},
+  {name:"البرمجة C++",icon:"⌨️",color:"#fbbf24"},
+  {name:"استثمار التطبيقات",icon:"🛠️",color:"#34d399"},
+  {name:"الإثراء",icon:"🚀",color:"#f87171"}
+];
+const LABELS=["أ","ب","ج","د"];
+const CIRC=2*Math.PI*32; // r=32 → ≈201.06
+const Q=[{"u": 0, "q": "المعالج (CPU) هو:", "c": ["مكوّن برمجي", "مكوّن مادي مسؤول عن إجراء العمليات الحسابية والمنطقية", "نوع من أنواع الذاكرة", "جزء من نظام التشغيل"], "a": 1}, {"u": 0, "q": "تقاس سرعة المعالج بـ:", "c": ["غيغابايت", "ميغابايت", "كيلوبايت", "غيغاهرتز"], "a": 3}, {"u": 0, "q": "المعالج ثنائي النواة له:", "c": ["طريق واحد لمعالجة البيانات", "أربعة طرق معالجة", "طريقا معالجة: ذهاب وإياب", "ثمانية طرق معالجة"], "a": 2}, {"u": 0, "q": "ذاكرة الوصول العشوائي (RAM) هي:", "c": ["مكوّن برمجي", "جزء من أجزاء الـ CPU", "نوع من القرص الصلب", "مكوّن مادي"], "a": 3}, {"u": 0, "q": "تُحرَّر البيانات الموجودة على ذاكرة RAM عند:", "c": ["إفراغ سلة المحذوفات", "تثبيت برنامج جديد", "حفظ ملف على القرص", "إعادة تشغيل الحاسوب"], "a": 3}, {"u": 0, "q": "BIOS هو:", "c": ["نوع من الذاكرة RAM", "برنامج تشغيل عادي", "شريحة مادية تخزن نظام الدخل والخرج الأساسي وهي جزء من ROM", "نوع من أنواع المعالجات"], "a": 2}, {"u": 0, "q": "عملية POST تعني:", "c": ["تحميل نظام التشغيل فقط", "حفظ البيانات في الذاكرة", "تثبيت البرامج تلقائياً", "فحص كافة أجزاء الحاسوب عند الإقلاع"], "a": 3}, {"u": 0, "q": "تحتفظ شريحة CMOS بمعلوماتها عند فصل الطاقة بواسطة:", "c": ["الذاكرة الرئيسية RAM", "القرص الصلب", "بطارية صغيرة موجودة على اللوحة الأم", "المعالج"], "a": 2}, {"u": 0, "q": "عدد رموز نظام العد الثنائي هو:", "c": ["8", "16", "10", "2"], "a": 3}, {"u": 0, "q": "أساس النظام السداسي عشري هو:", "c": ["8", "2", "10", "16"], "a": 3}, {"u": 0, "q": "يستخدم نظام العد الثنائي الأرقام:", "c": ["من 0 إلى 9", "من 0 إلى 7", "0 و1 فقط", "من 0 إلى 15"], "a": 2}, {"u": 0, "q": "عدد الرموز في أي نظام عددي يسمى:", "c": ["الأس", "الموقع", "المنزلة", "الأساس"], "a": 3}, {"u": 0, "q": "يتم تخزين البيانات في الحاسوب بالنظام:", "c": ["العشري", "الثماني", "السداسي عشري", "الثنائي"], "a": 3}, {"u": 0, "q": "العدد المقابل (23)₁₀ في النظام السداسي عشري هو:", "c": ["18", "20", "17", "16"], "a": 2}, {"u": 0, "q": "مكافئ العدد (10110011)₂ في النظام السداسي عشري هو:", "c": ["B5", "B2", "A3", "B3"], "a": 3}, {"u": 0, "q": "أي الأعداد الآتية لا يمكن أن يكون عدداً ثنائياً:", "c": ["11011", "110100", "10000", "11021"], "a": 3}, {"u": 0, "q": "الفكرة التي يرتكز عليها أي نظام عددي هي:", "c": ["الأساس فقط", "الأس فقط", "المنزلة فقط", "الأساس والأس معاً"], "a": 3}, {"u": 0, "q": "الرقم 1 في نظام عمل الحاسوب يعني:", "c": ["رقم فقط", "صفر", "لا يعني شيئاً", "التيار الكهربائي موجود (ON)"], "a": 3}, {"u": 0, "q": "عند ضغط زر الطاقة أول إشارة كهربائية تصل إلى:", "c": ["CMOS", "RAM", "القرص الصلب", "CPU"], "a": 3}, {"u": 0, "q": "شريحة CMOS تقوم بـ:", "c": ["تشغيل نظام التشغيل", "تحليل الأوامر البرمجية", "تخزين ملفات المستخدم", "تخزين معلومات BIOS والوقت والتاريخ"], "a": 3}, {"u": 0, "q": "النظام الثماني (Octal) يستخدم الأرقام:", "c": ["من 0 إلى 9", "من 0 إلى 6", "0 و1 فقط", "من 0 إلى 7"], "a": 3}, {"u": 0, "q": "تحويل العدد (36)₁₀ إلى النظام السداسي عشري يعطي:", "c": ["26", "24", "22", "28"], "a": 1}, {"u": 0, "q": "رموز النظام السداسي عشري تشمل:", "c": ["الأرقام 0-9 فقط", "الأرقام 0-9 والحروف A-F", "الأرقام 0-9 والحروف A-Z", "الأرقام 0-15 فقط"], "a": 1}, {"u": 0, "q": "يُستخدم النظام السداسي عشري في الحاسوب لأنه:", "c": ["أصعب من النظام الثنائي", "يستخدم أرقاماً فقط دون حروف", "يعمل بشكل أسرع من الثنائي", "يُقلل عدد الخانات ويُسهل قراءة الأعداد الممثلة بالنظام الثنائي"], "a": 3}, {"u": 0, "q": "البيانات في ذاكرة الوصول العشوائي تُعدّ:", "c": ["ملفات دائمة لا تُمحى", "معلومات الإقلاع", "بيانات محفوظة على القرص", "تعليمات البرنامج الحالي"], "a": 3}, {"u": 1, "q": "برنامج Adobe Photoshop يُستخدم أساساً في:", "c": ["تحرير الفيديو فقط", "تصميم المواقع", "برمجة الألعاب", "تحرير الصور"], "a": 3}, {"u": 1, "q": "RGB في برنامج Photoshop تمثل:", "c": ["ألوان تستخدم للطباعة", "نوعاً من الفلاتر", "الألوان الأساسية في الحاسوب", "صيغة حفظ الصور"], "a": 2}, {"u": 1, "q": "CMYK في برنامج Photoshop تمثل:", "c": ["الألوان الأساسية في الحاسوب", "نوعاً من الطبقات", "ألوان تستخدم للطباعة", "صيغة ملف خاصة"], "a": 2}, {"u": 1, "q": "الطبقات (Layers) في برنامج Photoshop:", "c": ["تُقلل من حجم الملفات", "لا تؤثر على حجم الملفات", "تُزيد من حجم الملفات", "تُسرّع عمل الحاسوب"], "a": 2}, {"u": 1, "q": "لحفظ ملف بحيث يمكن متابعة التعديل عليه لاحقاً في Photoshop نستخدم اللاحقة:", "c": ["jpg", "png", "gif", "psd"], "a": 3}, {"u": 1, "q": "تُستخدم الأداة Mark in في تحرير الفيديو لـ:", "c": ["قص نهاية الفيديو", "إدراج الفيديو", "حذف الفيديو", "قص بداية الفيديو"], "a": 3}, {"u": 1, "q": "عند تغيير سرعة عرض مقطع الفيديو إلى 2x:", "c": ["تتضاعف المدة الزمنية لعرض المقطع", "لا يتغير شيء", "تتثلث المدة الزمنية", "تتنصف المدة الزمنية لعرض المقطع"], "a": 3}, {"u": 1, "q": "الحركة الانتقالية بين الصور في برامج تحرير الفيديو هي:", "c": ["تأثير يُضاف على الصورة ذاتها", "نوع من الفلاتر", "تأثير يُضاف بين صورتين متجاورتين", "أداة لتعديل الألوان"], "a": 2}, {"u": 1, "q": "يمكن إخفاء الصوت الصادر عن الفيديو المدرج باختيار الأمر:", "c": ["Delete", "Stop", "Pause", "Mute"], "a": 3}, {"u": 1, "q": "الفلتر (Filter) في برنامج Photoshop يُستخدم لـ:", "c": ["طباعة الصورة", "تغيير حجم الصورة", "تطبيق تأثيرات خاصة على الصورة", "حفظ الصورة"], "a": 2}, {"u": 2, "q": "الشبكة هي:", "c": ["الاتصال بالإنترنت فقط", "برنامج للتواصل الاجتماعي", "ربط بين جهازين أو أكثر", "نوع من أنواع الذاكرة"], "a": 2}, {"u": 2, "q": "لكل جهاز على الشبكة رقم فريد خاص به يسمى:", "c": ["MAC", "URL", "HTTP", "IP"], "a": 3}, {"u": 2, "q": "الشبكة الشخصية PAN مداها لا يتجاوز:", "c": ["10 كيلومترات", "100 متر", "1 كيلومتر", "10 أمتار"], "a": 3}, {"u": 2, "q": "اختصار LAN يشير إلى:", "c": ["الشبكة الواسعة", "الشبكة الشخصية", "الشبكة المدنية", "الشبكة المحلية"], "a": 3}, {"u": 2, "q": "في الشبكة الحلقية (RING) يتصل كل جهاز:", "c": ["بنقطة مركزية واحدة", "بجميع الأجهزة الأخرى مباشرةً", "بالجهاز المجاور له مع وصل الجهاز الأخير بالأول", "بخادم مركزي فقط"], "a": 2}, {"u": 2, "q": "في الشبكة النجمية (STAR) تتصل الأجهزة:", "c": ["كل جهاز بالجهاز المجاور له", "على شكل قطعة واحدة مستقيمة", "على شكل حلقة", "بنقطة مركزية واحدة"], "a": 3}, {"u": 2, "q": "في الشبكة الخطية (BUS) يكون وسط النقل:", "c": ["نقطة مركزية", "حلقة", "خادم مركزي", "عبارة عن قطعة واحدة تتصل به جميع الأجهزة مباشرةً"], "a": 3}, {"u": 2, "q": "تقنية Bluetooth تُناسب نوع الشبكة:", "c": ["WAN", "MAN", "LAN", "PAN"], "a": 3}, {"u": 2, "q": "ISP اختصار لـ:", "c": ["بروتوكول الإنترنت", "خادم الإنترنت", "مزود خدمة الاتصال بالإنترنت", "نظام حماية الإنترنت"], "a": 2}, {"u": 2, "q": "البحث العكسي (Reverse Search) في Google هو البحث بواسطة:", "c": ["النص", "الصوت فقط", "الرقم التسلسلي", "الصورة بدلاً من النص"], "a": 3}, {"u": 2, "q": "برنامج Windows Defender هو:", "c": ["برنامج لتحرير الصور", "برنامج لإدارة الملفات", "برنامج مضاد للفيروسات مدمج مع نظام Windows 10", "برنامج لضبط إعدادات الشبكة"], "a": 2}, {"u": 2, "q": "الرقابة الأبوية (Parental Control) هي:", "c": ["رمز تشفير للرسائل", "برنامج مضاد للفيروسات", "احتياطات تمنع الأشخاص من الدخول إلى المواقع ذات المحتوى غير المرغوب", "نوع من الشبكات اللاسلكية"], "a": 2}, {"u": 2, "q": "التشفير (Encryption) هو:", "c": ["عملية استرجاع البيانات", "نسخ احتياطي للبيانات", "حذف الملفات المشفرة", "عملية ترميز للبيانات وتحويلها إلى صيغة غير مفهومة"], "a": 3}, {"u": 2, "q": "اختصار MAN يشير إلى:", "c": ["الشبكة الشخصية", "الشبكة المحلية", "الشبكة المدنية", "الشبكة الواسعة"], "a": 2}, {"u": 2, "q": "اختصار WAN يشير إلى:", "c": ["الشبكة المدنية", "الشبكة اللاسلكية", "الشبكة الشخصية", "الشبكة الواسعة"], "a": 3}, {"u": 2, "q": "ربط أجهزة الحاسوب في قاعة المدرسة بشبكة واحدة هو مثال على:", "c": ["WAN", "PAN", "MAN", "LAN"], "a": 3}, {"u": 2, "q": "الفائدة من استخدام نسخة احتياطية للبيانات هي:", "c": ["مساعدة المستخدم على تنظيم الملفات", "الوصول السريع للبيانات دائماً", "المساعدة على حماية البيانات في حال تعرضها للتلف أو الفقدان", "تسريع الحاسوب"], "a": 2}, {"u": 2, "q": "فك التشفير (Decryption) هو:", "c": ["عملية ترميز للبيانات", "نسخ الملفات", "حذف الملفات المشفرة", "إعادة تحويل البيانات إلى صيغتها الأصلية باستخدام المفتاح المناسب"], "a": 3}, {"u": 2, "q": "للتحقق من أن موقع الشراء عبر الإنترنت آمن نبحث عن:", "c": ["سرعة الموقع", "عدد زوار الموقع", "تصميم الموقع الجميل", "رمز القفل أو https في شريط العنوان"], "a": 3}, {"u": 2, "q": "كلمة المرور القوية يجب أن تحتوي على:", "c": ["اسم المستخدم فقط", "أرقام فقط", "حروف كبيرة وصغيرة وأرقام ورموز", "كلمات من القاموس"], "a": 2}, {"u": 2, "q": "تقنية Wi-Fi تُناسب نوع الشبكة:", "c": ["PAN", "WAN", "LAN", "MAN"], "a": 2}, {"u": 2, "q": "ربط جهاز المدرسة مع جهاز مديرية التربية في نفس المحافظة هو مثال على:", "c": ["PAN", "WAN", "LAN", "MAN"], "a": 3}, {"u": 2, "q": "ربط وزارة التربية في دمشق مع مديريات التربية في كافة المحافظات هو مثال على:", "c": ["PAN", "MAN", "LAN", "WAN"], "a": 3}, {"u": 2, "q": "يتم استعراض المحتوى المنشور على الإنترنت بوساطة:", "c": ["محرك الأقراص", "المعالج", "المتصفح (Browser)", "الطابعة"], "a": 2}, {"u": 2, "q": "من أخلاقيات الإبحار عبر الإنترنت:", "c": ["مشاركة كلمات مرور الآخرين", "التفكير جيداً قبل نشر أي معلومة على الشبكة", "اختراق حسابات الآخرين للتسلية", "مشاركة صور الأصدقاء دون إذنهم"], "a": 1}, {"u": 2, "q": "جهاز Router (راوتر) يُستخدم في:", "c": ["طباعة الملفات", "تخزين البيانات", "توصيل الشبكات ببعضها وتوجيه حركة البيانات", "تشغيل الصوت"], "a": 2}, {"u": 2, "q": "الشهادة الرقمية تُستخدم لـ:", "c": ["تشفير الملفات فقط", "نسخ الملفات احتياطياً", "التحقق من هوية الموقع الإلكتروني وضمان أمان الاتصال", "تسريع الاتصال بالإنترنت"], "a": 2}, {"u": 2, "q": "ما الذي يجب فعله عند استلام بريد إلكتروني مشبوه يطلب جوائز؟", "c": ["الرد بمعلوماتك الشخصية فوراً", "فتح المرفقات مباشرةً", "مشاركته مع الأصدقاء", "حذفه وعدم تسجيل أي تفاصيل شخصية"], "a": 3}, {"u": 2, "q": "جهاز Switch (سويتش) يُستخدم في:", "c": ["الاتصال بالإنترنت مباشرةً", "تشفير البيانات", "ربط الأجهزة ضمن شبكة محلية واحدة وتوجيه البيانات بينها", "طباعة الملفات"], "a": 2}, {"u": 2, "q": "تقنية WiMAX تُناسب نوع الشبكة:", "c": ["PAN", "LAN", "MAN", "WAN"], "a": 2}, {"u": 3, "q": "اللغة الوحيدة التي يفهمها الحاسوب هي:", "c": ["لغة C++", "لغة Python", "لغة الآلة المؤلفة من الرمزين (0 و1)", "لغة Java"], "a": 2}, {"u": 3, "q": "Compiler (المترجم) هو:", "c": ["محرر نصوص برمجي", "برنامج يقوم بترجمة النص البرمجي إلى لغة الآلة", "برنامج تشغيل", "لغة برمجة"], "a": 1}, {"u": 3, "q": "برنامج Code::Blocks هو:", "c": ["برنامج مدفوع ومغلق المصدر", "برنامج خاص بنظام Windows فقط", "برنامج يعمل على نظام Linux فقط", "برنامج مفتوح المصدر ومجاني يعمل على أنظمة تشغيل مختلفة"], "a": 3}, {"u": 3, "q": "قاعدة كتابة المتغير في لغة C++ هي:", "c": ["Value = Name Type;", "Name Type = Value;", "Name = Type Value;", "Type Name = Value;"], "a": 3}, {"u": 3, "q": "التعليمة cout في C++ تُستخدم لـ:", "c": ["إدخال البيانات", "تعريف المتغيرات", "طباعة البيانات على الشاشة", "إنهاء البرنامج"], "a": 2}, {"u": 3, "q": "لتعريف متغير من نوع نصي في C++ نستخدم:", "c": ["int", "char", "double", "string"], "a": 3}, {"u": 3, "q": "لتعريف متغير من نوع عدد صحيح في C++ نستخدم:", "c": ["double", "char", "string", "int"], "a": 3}, {"u": 3, "q": "لتعريف متغير من نوع عدد حقيقي (كسري) في C++ نستخدم:", "c": ["int", "string", "double", "bool"], "a": 2}, {"u": 3, "q": "المعامل != في C++ يعني:", "c": ["يساوي", "أكبر من", "أصغر من", "لا يساوي"], "a": 3}, {"u": 3, "q": "المعامل == في C++ يُستخدم لـ:", "c": ["تعيين قيمة لمتغير", "نفي الشرط", "المقارنة بين قيمتين للتحقق من تساويهما", "جمع متغيرين"], "a": 2}, {"u": 3, "q": "نوع التطبيق المختار عند إنشاء مشروع C++ جديد في Code::Blocks هو:", "c": ["GUI application", "web application", "mobile application", "console application"], "a": 3}, {"u": 3, "q": "المتغيرات في البرمجة هي:", "c": ["ثوابت لا تتغير قيمتها", "نوع من الحلقات التكرارية", "أوامر خاصة بالإدخال", "مكان في الذاكرة يخزن البيانات ويُعطى اسماً معيناً"], "a": 3}, {"u": 3, "q": "ما ناتج:   int x = 5;   cout << x + 3;", "c": ["x + 3", "5", "3", "8"], "a": 3}, {"u": 3, "q": "ما نوع المتغير المناسب لتخزين درجة حرارة 36.5 في C++؟", "c": ["int", "string", "double", "bool"], "a": 2}, {"u": 3, "q": "ما نوع المتغير المناسب لتخزين اسم طالب في C++؟", "c": ["int", "double", "string", "bool"], "a": 2}, {"u": 3, "q": "ما ناتج:   int a=10, b=3;   cout << a % b;", "c": ["3", "10", "0", "1"], "a": 3}, {"u": 3, "q": "ما ناتج:   int a=10, b=3;   cout << a / b;   (قسمة صحيحة)", "c": ["3.33", "4", "3", "10"], "a": 2}, {"u": 3, "q": "الشرط   x > 5   يكون صحيحاً (true) عندما:", "c": ["x تساوي 5", "x أصغر من 5", "x تساوي 0", "x تساوي 6"], "a": 3}, {"u": 3, "q": "الشرط   x >= 10   يكون صحيحاً (true) عندما:", "c": ["x تساوي 9", "x تساوي 10", "x تساوي 5", "x تساوي 8"], "a": 1}, {"u": 3, "q": "ما مخرج:   if(5 > 3) cout << 'صح'; else cout << 'خطأ';", "c": ["خطأ", "صح وخطأ معاً", "لا يوجد مخرج", "صح"], "a": 3}, {"u": 3, "q": "ما مخرج:   if(5 == 3) cout << 'A'; else cout << 'B';", "c": ["A", "A وB معاً", "لا مخرج", "B"], "a": 3}, {"u": 3, "q": "الحلقة for في C++ تُستخدم لـ:", "c": ["تعريف المتغيرات", "الإدخال من لوحة المفاتيح", "تكرار تعليمات لعدد معروف من المرات", "إنهاء البرنامج"], "a": 2}, {"u": 3, "q": "كم مرة تُنفَّذ:   for(int i=0; i<5; i++) cout << i;", "c": ["4 مرات", "6 مرات", "5 مرات", "0 مرات"], "a": 2}, {"u": 3, "q": "ما مخرج:   for(int i=1; i<=3; i++) cout << i;", "c": ["0 1 2", "1 2 3 4", "0 1 2 3", "1 2 3"], "a": 3}, {"u": 3, "q": "ما مخرج:   for(int i=0; i<4; i++) cout << '*';", "c": ["***", "*****", "****", "**"], "a": 2}, {"u": 3, "q": "التعليمة cin في C++ تُستخدم لـ:", "c": ["طباعة النص على الشاشة", "تعريف الحلقات", "إنهاء البرنامج", "إدخال البيانات من لوحة المفاتيح"], "a": 3}, {"u": 3, "q": "ما مخرج:   int x=2;   x=x*x;   cout << x;", "c": ["2", "x*x", "0", "4"], "a": 3}, {"u": 3, "q": "ما نوع الخطأ في:   int x = 'hello';", "c": ["خطأ في وقت التشغيل", "لا يوجد خطأ", "خطأ في التجميع لعدم تطابق نوع البيانات", "خطأ منطقي"], "a": 2}, {"u": 3, "q": "الفرق بين   cout << x;   و   cout << 'x';   هو:", "c": ["لا فرق بينهما", "الأولى تطبع قيمة المتغير x والثانية تطبع الحرف x حرفياً", "الأولى تطبع حرفاً فقط", "الثانية تطبع قيمة المتغير"], "a": 1}, {"u": 3, "q": "ما مخرج:   int x=10;   if(x > 5) { x = x-3; cout << x; }", "c": ["10", "5", "3", "7"], "a": 3}, {"u": 3, "q": "تعليمة endl في C++ تُستخدم لـ:", "c": ["إنهاء البرنامج", "إدخال بيانات", "تعريف متغير", "إدراج سطر جديد في المخرجات"], "a": 3}, {"u": 3, "q": "ما مخرج:   cout << 'Hello' << endl << 'World';", "c": ["HelloWorld في سطر واحد", "Hello World مع مسافة", "World Hello", "Hello في سطر و World في سطر آخر"], "a": 3}, {"u": 3, "q": "المعامل % في C++ يُستخدم لـ:", "c": ["الجمع", "الضرب", "القسمة الكاملة", "الباقي من القسمة"], "a": 3}, {"u": 3, "q": "ما نتيجة الشرط:   (3 == 3) && (5 > 2)", "c": ["false", "لا يمكن تحديده", "true", "0"], "a": 2}, {"u": 3, "q": "المعامل && في C++ يعني:", "c": ["OR (أو)", "NOT (ليس)", "AND (و)", "XOR (أو حصري)"], "a": 2}, {"u": 3, "q": "المعامل || في C++ يعني:", "c": ["AND (و)", "NOT (ليس)", "XOR (أو حصري)", "OR (أو)"], "a": 3}, {"u": 3, "q": "ما مخرج:   int x=5;   if(x != 5) cout << 'A'; else cout << 'B';", "c": ["A", "AB", "لا مخرج", "B"], "a": 3}, {"u": 3, "q": "لفحص إذا كان عدد n زوجياً نستخدم الشرط:", "c": ["n / 2 == 1", "n > 0", "n % 2 == 0", "n * 2 == n"], "a": 2}, {"u": 3, "q": "ما مخرج:   int s=0;   for(int i=1;i<=4;i++) s+=i;   cout << s;", "c": ["4", "5", "1234", "10"], "a": 3}, {"u": 3, "q": "ما مخرج:   for(int i=5; i>=1; i--) cout << i;", "c": ["1 2 3 4 5", "5 5 5 5 5", "5 4 3 2 1", "1 1 1 1 1"], "a": 2}, {"u": 3, "q": "تُستخدم الأقواس المعقوفة {} في C++ لـ:", "c": ["تعريف المتغيرات فقط", "الطباعة على الشاشة", "الإدخال من المستخدم", "تحديد بداية ونهاية كتلة من التعليمات"], "a": 3}, {"u": 3, "q": "ما مخرج:   int x=0;   while(x < 3) { cout << x; x++; }", "c": ["123", "012", "0123", "321"], "a": 1}, {"u": 3, "q": "ما ناتج:   int x=7;   x%2==0 فتطبع 'زوجي' وإلا تطبع 'فردي':", "c": ["زوجي", "0", "فردي", "1"], "a": 2}, {"u": 3, "q": "في شيفرة:   for(int i=1;i<=n;i++) s=s+i;   ما هو دور المتغير s؟", "c": ["عداد للحلقة", "يخزن قيمة n", "لا دور له", "يجمع قيم i تراكمياً"], "a": 3}, {"u": 3, "q": "التعليق على سطر واحد في C++ يُكتب بـ:", "c": ["// للتعليق على سطر", "## لكل تعليق", "<!-- للتعليق -->", "/* للتعليق */"], "a": 0}, {"u": 3, "q": "ما مخرج:   int x=1;   x++;   x++;   cout << x;", "c": ["1", "2", "3", "0"], "a": 2}, {"u": 3, "q": "ما مخرج:   int x=10;   x--;   cout << x;", "c": ["10", "9", "11", "-1"], "a": 1}, {"u": 3, "q": "ما مخرج:   for(int i=2; i<=8; i+=2) cout << i;", "c": ["1 3 5 7", "2 3 4 5 6 7 8", "2 4 6 8", "2 4 6"], "a": 2}, {"u": 3, "q": "استخدام \\n في C++ يُدرج:", "c": ["حرف n", "مسافة", "سطراً جديداً في المخرجات", "يُنهي البرنامج"], "a": 2}, {"u": 3, "q": "ما ناتج:   int x=100;   cout << x/10 + x%10;", "c": ["100", "11", "10", "1"], "a": 2}, {"u": 3, "q": "برنامج يحسب مجموع الأعداد من 1 إلى 100 ناتجه:", "c": ["5150", "4950", "5050", "5000"], "a": 2}, {"u": 3, "q": "ما مخرج:   int n=5;   cout << n*(n+1)/2;", "c": ["15", "10", "30", "5"], "a": 0}, {"u": 3, "q": "ما عدد نجوم الحلقتين المتداخلتين:   for(i=1;i<=3;i++) for(j=1;j<=2;j++) cout<<'*';", "c": ["5 نجوم", "8 نجوم", "6 نجوم", "3 نجوم"], "a": 2}, {"u": 3, "q": "في برنامج يحسب المتوسط لثلاثة أعداد a, b, c الصيغة الصحيحة هي:", "c": ["a + b + c / 3", "(a + b) + c / 3", "a + b + c * 3", "(a + b + c) / 3.0"], "a": 3}, {"u": 3, "q": "الفرق الرئيسي بين for و while في C++ هو:", "c": ["for لا يمكن استخدامها", "while أسرع دائماً", "لا فرق في الاستخدام", "for للتكرار المحدد العدد؛ while للتكرار المشروط"], "a": 3}, {"u": 3, "q": "ما ناتج:   double x = 7.0 / 2.0;   cout << x;", "c": ["3", "4", "3.5", "2"], "a": 2}, {"u": 3, "q": "ما ناتج:   int x = 7 / 2;   cout << x;   (قسمة صحيحة)", "c": ["3.5", "4", "2", "3"], "a": 3}, {"u": 3, "q": "ما الخطأ في:   int x = 5   cout << x;", "c": ["اسم المتغير خاطئ", "القيمة خاطئة", "لا يوجد خطأ", "الفاصلة المنقوطة مفقودة بعد int x = 5"], "a": 3}, {"u": 3, "q": "ما مخرج:   int x=0;   if(x) cout << 'صحيح'; else cout << 'خطأ';", "c": ["صحيح", "0", "خطأ", "لا مخرج"], "a": 2}, {"u": 3, "q": "ما مخرج:   if(true) cout<<'1'; if(false) cout<<'2'; cout<<'3';", "c": ["123", "12", "2", "13"], "a": 3}, {"u": 3, "q": "برنامج يطبع 'ناجح' إذا كانت الدرجة > 60 ماذا يطبع للدرجة 60؟", "c": ["ناجح", "ناجح وراسب", "لا يطبع شيئاً", "راسب"], "a": 3}, {"u": 3, "q": "ما مخرج:   int a=2, b=3, c=a+b;   cout << c;", "c": ["a+b", "2", "3", "5"], "a": 3}, {"u": 3, "q": "الأمر الصحيح لطباعة نص في C++ هو:", "c": ["print('مرحباً');", "printf('مرحباً');", "cout >> 'مرحباً';", "cout << 'مرحباً بالعالم';"], "a": 3}, {"u": 3, "q": "الكلمات المحجوزة (Reserved Words) في C++ هي:", "c": ["أسماء يختارها المبرمج", "كلمات لها معنى خاص في اللغة ولا يمكن استخدامها كأسماء متغيرات", "أسماء المتغيرات فقط", "أسماء الدوال فقط"], "a": 1}, {"u": 3, "q": "ما ناتج:   int x=2;   for(int i=0;i<3;i++) x*=2;   cout << x;", "c": ["6", "12", "16", "8"], "a": 2}, {"u": 3, "q": "لحساب مساحة دائرة نصف قطرها r الصيغة في C++ هي:", "c": ["r + r + 3.14", "3.14 * r * r", "3.14 + r * r", "2 * 3.14 * r"], "a": 1}, {"u": 3, "q": "ما مخرج:   int x=10;   if(x>5 && x<20) cout<<'صحيح'; else cout<<'خطأ';", "c": ["خطأ", "صحيح وخطأ", "صحيح", "لا مخرج"], "a": 2}, {"u": 3, "q": "ما مخرج:   for(int i=1; i*i<=25; i++) cout << i;", "c": ["1 2 3 4 5", "1 4 9 16 25", "1 2 3 4", "1 2 3 4 5 6"], "a": 0}, {"u": 3, "q": "ما مخرج:   int n=0;   while(n != 5) { n++; }   cout << n;", "c": ["0", "4", "6", "5"], "a": 3}, {"u": 3, "q": "ما الأخطاء الشائعة عند المبتدئين في C++؟", "c": ["استخدام المتغيرات", "كتابة التعليقات", "نسيان الفاصلة المنقوطة أو الأقواس", "استخدام الحلقات"], "a": 2}, {"u": 3, "q": "ما مخرج:   int x=5;   while(x>0){ cout<<x; x-=2; }", "c": ["5 3 1", "5 4 3 2 1", "5 3", "5 2"], "a": 0}, {"u": 3, "q": "ما ناتج:   int x=2;   int y=x;   y=10;   cout << x;", "c": ["10", "0", "2", "12"], "a": 2}, {"u": 3, "q": "برنامج يحسب مساحة مستطيل طوله 5 وعرضه 3 ناتجه:", "c": ["5", "3", "16", "15"], "a": 3}, {"u": 3, "q": "ما ناتج:   int a=4, b=2;   cout << a*b + b;", "c": ["8", "12", "10", "6"], "a": 2}, {"u": 3, "q": "ما مخرج:   int x=3;   for(int i=1;i<=x;i++) cout << i*i;", "c": ["1 4 9", "1 2 3", "3 6 9", "1 3 9"], "a": 0}, {"u": 3, "q": "ما مخرج:   int a=5, b=2;   cout << (a>b ? a-b : a+b);", "c": ["7", "3", "10", "2"], "a": 1}, {"u": 3, "q": "في لغة C++ الفاصلة المنقوطة ; تعني:", "c": ["بداية كتلة", "نهاية التعليمة (statement)", "نهاية البرنامج", "تعليق في الكود"], "a": 1}, {"u": 3, "q": "ما ناتج:   int x=4, y=2;   cout << x*y + y;", "c": ["8", "12", "10", "6"], "a": 2}, {"u": 3, "q": "لحساب مجموع أرقام من 1 إلى n أي هيكل برمجي نستخدم؟", "c": ["تعليمة if فقط", "متغيرات فقط", "حلقة for مع تراكم المجموع", "cout متكررة يدوياً"], "a": 2}, {"u": 3, "q": "ما مخرج:   int x=10;   if(x>5 && x<20) cout<<'داخل النطاق'; else cout<<'خارج النطاق';", "c": ["خارج النطاق", "لا مخرج", "داخل وخارج", "داخل النطاق"], "a": 3}, {"u": 4, "q": "يمكن تنسيق الأعمدة في برنامج الجداول الإلكترونية من تبويب:", "c": ["إدراج", "تخطيط الصفحة", "عرض", "صفحة رئيسية"], "a": 3}, {"u": 4, "q": "لتجميد الصف 1 والعمود A في الجداول الإلكترونية نحدد الخلية:", "c": ["A1", "A2", "B2", "B1"], "a": 2}, {"u": 4, "q": "يتم الوصول إلى خيار التحقق من الصحة في الجداول الإلكترونية من تبويب:", "c": ["إدراج", "صفحة رئيسية", "بيانات > أدوات البيانات", "عرض"], "a": 2}, {"u": 4, "q": "الدالة COUNTIF تُستخدم لـ:", "c": ["جمع الأرقام", "حساب المتوسط", "حساب عدد الخلايا التي تحقق شرطاً معيناً", "إيجاد القيمة الكبرى"], "a": 2}, {"u": 4, "q": "الدالة IF في الجداول الإلكترونية تُستخدم لـ:", "c": ["جمع الأرقام", "عرض نتيجة مشروطة بتحقق شرط معين", "حساب المتوسط", "فرز البيانات"], "a": 1}, {"u": 4, "q": "المرجع النسبي في الجداول الإلكترونية هو:", "c": ["خلية لا يتغير مرجعها عند النسخ", "خلية ثابتة تماماً", "خلية يتغير مرجعها عند النسخ", "خلية مدمجة"], "a": 2}, {"u": 4, "q": "الرمز $ في مراجع الخلايا يُستخدم لـ:", "c": ["جعل المرجع نسبياً", "حساب النسب المئوية", "إنشاء صيغة جديدة", "جعل المرجع مطلقاً لا يتغير عند النسخ"], "a": 3}, {"u": 4, "q": "نظام التشغيل Ubuntu هو توزيعة من نظام:", "c": ["Windows", "Mac OS", "DOS", "Linux"], "a": 3}, {"u": 4, "q": "لإنشاء مجلد جديد في سطر الأوامر في Linux نستخدم الأمر:", "c": ["ls", "rm", "mkdir", "cd"], "a": 2}, {"u": 4, "q": "لعرض محتويات مجلد في سطر الأوامر نستخدم الأمر:", "c": ["pwd", "ls", "clear", "mkdir"], "a": 1}, {"u": 4, "q": "لمسح شاشة سطر الأوامر نستخدم الأمر:", "c": ["cls", "CLEAR", "erase", "clear"], "a": 3}, {"u": 4, "q": "الاختصار للوصول إلى سطر الأوامر في Ubuntu هو:", "c": ["Ctrl + Alt + Delete", "Super + Space", "Ctrl + Shift + T", "Ctrl + Alt + T"], "a": 3}, {"u": 4, "q": "لا يُنصح بتفعيل الدخول التلقائي (Automatic login) لأنه:", "c": ["يُبطئ الحاسوب", "يستهلك ذاكرة كبيرة", "يسبب أخطاء في النظام", "يسمح لأي شخص بالدخول دون معرفة كلمة السر"], "a": 3}, {"u": 4, "q": "الأمر man في سطر أوامر Linux يُستخدم لـ:", "c": ["إنشاء مجلد جديد", "عرض محتويات مجلد", "حذف ملف", "معرفة وظيفة الأوامر الأخرى"], "a": 3}, {"u": 4, "q": "العلامة (~) في سطر الأوامر في Linux تدل على:", "c": ["مجلد الجذر (Root)", "نوع المستخدم", "مجلد المنزل", "اسم النظام"], "a": 2}, {"u": 4, "q": "العلامة (/) في سطر الأوامر في Linux تدل على:", "c": ["مجلد المنزل", "نوع المستخدم", "مجلد الجذر (Root)", "اسم الملف"], "a": 2}, {"u": 4, "q": "لتطبيق عامل التصفية على بيانات الجداول الإلكترونية نذهب إلى:", "c": ["صفحة رئيسية", "إدراج", "تخطيط الصفحة", "بيانات > فرز وتصفية"], "a": 3}, {"u": 4, "q": "المرجع المختلط $H1 في الجداول الإلكترونية يعني:", "c": ["عمود نسبي وصف مطلق", "عمود مطلق وصف مطلق", "عمود مطلق وصف نسبي", "عمود نسبي وصف نسبي"], "a": 2}, {"u": 4, "q": "المرجع المختلط H$1 في الجداول الإلكترونية يعني:", "c": ["عمود مطلق وصف نسبي", "عمود مطلق وصف مطلق", "عمود نسبي وصف نسبي", "عمود نسبي وصف مطلق"], "a": 3}, {"u": 4, "q": "لتجميد الصف 1 والصف 2 والعمود A والعمود B نحدد الخلية:", "c": ["A1", "C3", "B2", "A3"], "a": 1}, {"u": 4, "q": "نوع حساب المستخدم الذي يمكنه تثبيت البرامج في Ubuntu هو:", "c": ["Standard", "Guest", "Administrator", "User"], "a": 2}, {"u": 4, "q": "لتبديل لغة لوحة المفاتيح في Ubuntu نستخدم:", "c": ["Alt + F4", "Ctrl + Shift + Delete", "Super + Space", "Ctrl + Alt + T"], "a": 2}, {"u": 4, "q": "عند تثبيت برنامج من مركز برمجيات Ubuntu نحتاج إلى:", "c": ["قرص مضغوط", "إذن خاص فقط", "الاتصال بالشابكة (الإنترنت)", "إعادة تشغيل الحاسوب أولاً"], "a": 2}, {"u": 4, "q": "الأمر pwd في سطر أوامر Linux يُستخدم لـ:", "c": ["معرفة اسم المستخدم", "إنشاء ملف جديد", "معرفة المسار الحالي (المجلد الحالي)", "طباعة ملف"], "a": 2}, {"u": 4, "q": "الأمر cp في سطر أوامر Linux يُستخدم لـ:", "c": ["إنشاء مجلد", "عرض محتوى مجلد", "حذف ملف", "نسخ الملفات"], "a": 3}, {"u": 4, "q": "الأمر cd في سطر أوامر Linux يُستخدم لـ:", "c": ["نسخ الملفات", "حذف الملفات", "عرض محتوى مجلد", "الانتقال بين المجلدات"], "a": 3}, {"u": 4, "q": "ما الخلية التي تحتوي على مرجع مطلق تام؟", "c": ["H1", "$H1", "$H$1", "H$1"], "a": 2}, {"u": 4, "q": "دالة SUM في الجداول الإلكترونية تُستخدم لـ:", "c": ["إيجاد القيمة الكبرى", "حساب المتوسط", "عد الخلايا", "جمع الأرقام في نطاق معين"], "a": 3}, {"u": 4, "q": "لمعرفة وظيفة أمر ما في سطر الأوامر في Linux نستخدم:", "c": ["run <الأمر>", "show <الأمر>", "man <الأمر>", "help <الأمر>"], "a": 2}, {"u": 4, "q": "الضغط على مفتاح Tab في سطر أوامر Linux يُساعد في:", "c": ["مسح الشاشة", "إنهاء الجلسة", "الانتقال لسطر جديد", "عرض الأوامر التي تبدأ بالمحارف نفسها"], "a": 3}, {"u": 5, "q": "برنامج Flash يُستخدم لـ:", "c": ["تحرير الصور الثابتة فقط", "كتابة الشيفرات البرمجية فقط", "تصميم قواعد البيانات", "تصميم وتحريك الرسوم ثنائية الأبعاد"], "a": 3}, {"u": 5, "q": "في برنامج Flash لجعل التحكم بالكائن ممكناً عبر الشيفرة يجب تحويله إلى:", "c": ["Button", "Graphic", "Shape", "Movie clip"], "a": 3}, {"u": 5, "q": "أمر إيقاف العرض في Action Script هو:", "c": ["Stop()", "STOP()", "stop()", "pause()"], "a": 2}, {"u": 5, "q": "الشكل الصحيح للذهاب لإطار محدد والوقوف عنده في Action Script:", "c": ["gotoandstop();", "GoToAndStop();", "gotoAndStop();", "goto_and_stop();"], "a": 2}, {"u": 5, "q": "تقنية Li-Fi تعتمد في عملها على:", "c": ["موجات الراديو", "الأقمار الصناعية", "مصابيح LED للإضاءة", "الأسلاك النحاسية"], "a": 2}, {"u": 5, "q": "إنترنت الأشياء (IoT) يعني:", "c": ["شبكة الإنترنت العادية", "برنامج للتواصل الاجتماعي", "أجهزة حاسوب متصلة فقط", "ربط الأشياء المادية بالإنترنت لإرسال واستقبال البيانات"], "a": 3}, {"u": 5, "q": "BIM اختصار لـ:", "c": ["Basic Internet Management", "Binary Information Matrix", "Building Information Modeling", "Broad Internet Method"], "a": 2}, {"u": 5, "q": "النمذجة (Modeling) في الحوسبة تعني:", "c": ["تقليد عملية فيزيائية حقيقية", "لغة برمجة خاصة", "تمثيل مرئي للمعرفة يساهم في تبسيط الأفكار وتجربتها قبل التطبيق", "نظام تشغيل"], "a": 2}, {"u": 5, "q": "المحاكاة (Simulation) تعني:", "c": ["تمثيل مرئي مبسط فقط", "برنامج رسم", "عملية تقليد لأي عملية فيزيائية أو أداة حقيقية بهدف دراسة النتائج المتوقعة", "نوع من أنواع الذاكرة"], "a": 2}, {"u": 5, "q": "البيت الذكي (Smart Home) يتيح التحكم في الأجهزة:", "c": ["من داخل المنزل فقط", "عن طريق التحكم اليدوي فقط", "من هاتف المنزل الثابت فقط", "سواء من داخل المنزل أو خارجه"], "a": 3}, {"u": 5, "q": "الفرق بين import to stage و import to library في Flash:", "c": ["لا يوجد فرق", "import to library أسرع دائماً", "import to stage يضع الصورة مباشرة على المسرح بينما import to library يضعها في المكتبة فقط", "import to stage يضع الصورة في المكتبة"], "a": 2}, {"u": 5, "q": "المتغير في لغة Action Script يُستخدم لـ:", "c": ["تصميم الأزرار", "تغيير حجم الكائن", "تخزين قيم تعبر عن حالات مختلفة", "تحريك الكائنات تلقائياً"], "a": 2}, {"u": 5, "q": "أياً من الأسماء الآتية يمكن أن يكون اسماً برمجياً للكائن في Action Script:", "c": ["trace", "on", "stop", "on1"], "a": 3}, {"u": 5, "q": "مثال على برامج المحاكاة الحاسوبية هو:", "c": ["AutoCAD", "Access", "MATLAB", "Word"], "a": 2}, {"u": 5, "q": "لعبة Need For Speed تُعدّ مثالاً على:", "c": ["برامج التصميم", "برامج قواعد البيانات", "ألعاب المحاكاة", "برامج معالجة النصوص"], "a": 2}, {"u": 5, "q": "تقنية الواقع المعزز (AR) في التعليم تجعله:", "c": ["الواقع الافتراضي المنفصل عن الحقيقي", "برنامجاً لتحرير الصور", "نوعاً من الشبكات", "أكثر تفاعليةً وإبداعاً بدمج العناصر الرقمية مع العالم الحقيقي"], "a": 3}, {"u": 5, "q": "من مزايا تقنية Li-Fi مقارنةً بـ Wi-Fi هو:", "c": ["مدى جغرافي أوسع", "تعمل عبر الجدران", "أرخص تكلفةً في جميع الحالات", "سرعة نقل بيانات أعلى بكثير وأمان أفضل"], "a": 3}, {"u": 5, "q": "المدينة الذكية (Smart City) تعتمد أساساً على:", "c": ["الأقمار الصناعية فقط", "الراديو فقط", "إنترنت الأشياء (IoT) وتبادل البيانات", "الأسلاك النحاسية فقط"], "a": 2}, {"u": 5, "q": "من تطبيقات إنترنت الأشياء في الزراعة:", "c": ["تصميم المباني", "محاكاة الطيران", "تحرير الصور", "أجهزة استشعار تراقب رطوبة التربة وترسل تقارير تلقائياً"], "a": 3}, {"u": 5, "q": "النص بين علامتي /* ... */ في Action Script يُمثل:", "c": ["أمراً برمجياً تنفيذياً", "اسم الكائن", "نوع المتغير", "تعليقاً يُوضّح الكود ولا يُنفَّذ"], "a": 3}, {"u": 5, "q": "لاستيراد ملف إلى مسرح برنامج Flash نتبع التسلسل:", "c": ["File > Export > Import to stage", "Edit > Import > Import to stage", "File > Import > Import to stage", "View > Import > Import to stage"], "a": 2}, {"u": 5, "q": "الحدث (Event) في Action Script هو:", "c": ["نوع من المتغيرات", "خاصية الكائن", "ما يُطلق تنفيذ الكود مثل نقر الزر أو مرور الماوس", "دالة رياضية"], "a": 2}, {"u": 5, "q": "أحد أهم مزايا البيت الذكي هو:", "c": ["رفع تكاليف الصيانة", "تعقيد إدارة المنزل", "إلغاء الاتصال بالإنترنت", "التحكم بالأجهزة عن بُعد وتحسين استهلاك الطاقة"], "a": 3}, {"u": 5, "q": "جهاز محاكاة الطيران (Flight Simulator) هو مثال على:", "c": ["النمذجة فقط دون محاكاة", "برنامج لتحرير الفيديو", "محاكاة عملية الطيران بهدف التدريب دون مخاطر", "لعبة ترفيهية بدون هدف تعليمي"], "a": 2}, {"u": 5, "q": "روبوتات NAO تُستخدم في:", "c": ["تصميم الجسور فقط", "الطبخ التلقائي", "طباعة المستندات", "بطولات كرة القدم للروبوتات"], "a": 3}];
+
+// ── state ──
+let studentName="", totalMin=0, QTIME=0;
+let cur=0, score=0, streak=0, maxStreak=0, selected=-1, locked=false;
+let timerVal=0, timerID=null;
+const usc=UNITS.map(()=>({c:0,t:0}));
+
+// ── INTRO ──────────────────────────────────────────────────────────────
+let activeDurBtn=null;
+
+function pickDur(min, btn){
+  totalMin=min; QTIME=Math.floor(min*60/200);
+  document.getElementById('customRow').style.display='none';
+  document.getElementById('customMin').value='';
+  setDurBtn(btn); showPreview();
+}
+
+function toggleCustom(btn){
+  const row=document.getElementById('customRow');
+  const open=row.style.display==='flex';
+  row.style.display=open?'none':'flex';
+  if(open){totalMin=0;QTIME=0;hidePreview();checkReady();}
+  setDurBtn(open?null:btn);
+}
+
+function pickDurCustom(val){
+  const v=parseInt(val);
+  if(v>=10 && v<=300){totalMin=v;QTIME=Math.floor(v*60/200);showPreview();}
+  else{totalMin=0;QTIME=0;hidePreview();}
+  checkReady();
+}
+
+function setDurBtn(btn){
+  if(activeDurBtn) activeDurBtn.classList.remove('sel');
+  activeDurBtn=btn;
+  if(btn) btn.classList.add('sel');
+  checkReady();
+}
+
+function showPreview(){
+  const box=document.getElementById('perqBox');
+  document.getElementById('pqTotal').textContent=totalMin;
+  document.getElementById('pqSec').textContent=QTIME;
+  box.classList.add('show');
+  checkReady();
+}
+function hidePreview(){document.getElementById('perqBox').classList.remove('show')}
+
+function checkReady(){
+  const name=document.getElementById('nameInput').value.trim();
+  const ok=name.length>=2 && QTIME>0;
+  const btn=document.getElementById('startBtn');
+  btn.classList.toggle('ready',ok);
+}
+
+// ── START ──────────────────────────────────────────────────────────────
+function startQuiz(){
+  studentName=document.getElementById('nameInput').value.trim();
+  if(!studentName || QTIME<=0) return;
+  document.getElementById('hdrName').textContent='👤 '+studentName;
+  showScreen('quiz'); render();
+}
+
+// ── SCREENS ────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────
+function render(){
+  if(cur>=Q.length){showResults();return;}
+  const q=Q[cur], u=UNITS[q.u];
+  selected=-1; locked=false;
+  document.getElementById('qnum').textContent=cur+1;
+  document.getElementById('prog').style.width=(cur/200*100)+'%';
+  document.getElementById('tunit').textContent=u.icon+' '+u.name;
+  document.getElementById('qtag').textContent=u.icon+' '+u.name;
+  document.getElementById('qtag').style.color=u.color;
+  updateStreak(); updateLS();
+  const qb=document.getElementById('qbox');
+  qb.style.animation='none'; qb.offsetHeight; qb.style.animation='slideIn .35s cubic-bezier(.4,0,.2,1)';
+  document.getElementById('qtext').textContent=q.q;
+  const ch=document.getElementById('choices');
+  ch.style.animation='none'; ch.offsetHeight; ch.style.animation='slideIn .4s cubic-bezier(.4,0,.2,1)';
+  ch.innerHTML='';
+  q.c.forEach((txt,i)=>{
+    const b=document.createElement('button'); b.className='cbtn'; b.id='c'+i;
+    b.innerHTML='<span class="clbl">'+LABELS[i]+'</span>'+txt;
+    b.onclick=()=>pick(i); ch.appendChild(b);
+  });
+  startTimer();
+}
+
+// ── TIMER ──────────────────────────────────────────────────────────────
+function startTimer(){
+  clearInterval(timerID); timerVal=QTIME; updateT();
+  // smooth animation: update every 100ms for fluid arc
+  let elapsed=0;
+  timerID=setInterval(()=>{
+    elapsed+=100;
+    const remaining=Math.ceil((QTIME*1000-elapsed)/1000);
+    if(remaining!==timerVal){timerVal=Math.max(0,remaining);updateT();}
+    if(elapsed>=QTIME*1000){clearInterval(timerID);timerVal=0;updateT();onTimeout();}
+  },100);
+}
+
+function updateT(){
+  const arc=document.getElementById('tarc');
+  const num=document.getElementById('tnum');
+  const em=document.getElementById('temoji');
+  const frac=(QTIME-timerVal)/QTIME;          // 0=full … 1=empty
+  const offset=CIRC*frac;
+  arc.style.strokeDashoffset=offset;
+  num.textContent=timerVal;
+  const pct=timerVal/QTIME;
+  if(pct>0.4){
+    arc.style.stroke='#4cc9f0'; num.style.color=''; em.textContent='⏳';
+    document.querySelector('.tsvgw').style.animation='none';
+  } else if(pct>0.2){
+    arc.style.stroke='#fbbf24'; num.style.color='#fbbf24'; em.textContent='⚡';
+  } else {
+    arc.style.stroke='#f87171'; num.style.color='#f87171'; em.textContent='🚨';
+    document.querySelector('.tsvgw').style.animation='pulseglow .55s ease infinite';
+  }
+}
+
+// ── PICK ───────────────────────────────────────────────────────────────
+function pick(i){
+  if(locked)return;
+  for(let k=0;k<4;k++){const b=document.getElementById('c'+k);if(b)b.classList.remove('selected');}
+  selected=i; document.getElementById('c'+i)?.classList.add('selected');
+}
+
+// ── TIMEOUT → evaluate → advance ───────────────────────────────────────
+function onTimeout(){
+  if(locked)return; locked=true;
+  const correct=Q[cur].a, ui=Q[cur].u;
+  const ok=(selected===correct);
+  usc[ui].t++;
+  for(let k=0;k<4;k++){
+    const b=document.getElementById('c'+k); if(!b)continue;
+    b.classList.add('locked'); b.classList.remove('selected');
+    if(k===correct) b.classList.add('correct');
+    else if(k===selected) b.classList.add('wrong');
+  }
+  if(ok){score++;streak++;if(streak>maxStreak)maxStreak=streak;usc[ui].c++;showFB('🎉');confetti();}
+  else{streak=0; showFB(selected===-1?'⏰':'😢');}
+  document.querySelector('.tsvgw').style.animation='none';
+  updateStreak(); updateLS();
+  setTimeout(()=>{hideFB();cur++;render();},1400);
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────
+function showFB(e){document.getElementById('fbemoji').textContent=e;document.getElementById('fb').classList.add('show');}
+function hideFB(){document.getElementById('fb').classList.remove('show');}
+
+function confetti(){
+  const ct=document.getElementById('conf');
+  const cols=['#4cc9f0','#4ade80','#fbbf24','#f472b6','#c084fc'];
+  for(let i=0;i<20;i++){
+    const d=document.createElement('div'); d.className='cdot';
+    d.style.left=Math.random()*100+'%';
+    d.style.background=cols[Math.floor(Math.random()*cols.length)];
+    d.style.animationDelay=Math.random()*.35+'s';
+    d.style.animationDuration=(.8+Math.random()*.55)+'s';
+    const sz=5+Math.random()*8+'px'; d.style.width=sz; d.style.height=sz;
+    d.style.borderRadius=Math.random()>.5?'50%':'2px';
+    ct.appendChild(d); setTimeout(()=>d.remove(),1600);
+  }
+}
+
+function updateStreak(){
+  const s=document.getElementById('streak');
+  if(streak>=5){s.classList.add('hot');s.innerHTML='🔥🔥 <span id="sv">'+streak+'</span> متتالي';s.style.animation='sbounce .3s ease';setTimeout(()=>s.style.animation='',300);}
+  else if(streak>=3){s.classList.add('hot');s.innerHTML='🔥 <span id="sv">'+streak+'</span> متتالي';}
+  else{s.classList.remove('hot');s.innerHTML='⚡ <span id="sv">'+streak+'</span> متتالي';}
+}
+function updateLS(){
+  document.getElementById('lscore').textContent='✅ '+score+' صحيح  |  ❌ '+Math.max(0,cur-score)+' خطأ';
+}
+
+// ── RESULTS ────────────────────────────────────────────────────────────
+function showResults(){
+  showScreen('results');
+  const pct=Math.round(score/200*100);
+  let grade,trophy;
+  if(pct>=90){grade='ممتاز 🌟';trophy='🏆';}
+  else if(pct>=80){grade='جيد جداً 🥇';trophy='🥇';}
+  else if(pct>=70){grade='جيد 🥈';trophy='🥈';}
+  else if(pct>=60){grade='مقبول 🥉';trophy='🥉';}
+  else{grade='بحاجة للمراجعة 📚';trophy='📚';}
+  document.getElementById('rtrophy').textContent=trophy;
+  document.getElementById('rscore').textContent=score+'/200';
+  document.getElementById('rname').textContent='👤 '+studentName;
+  document.getElementById('rgrade').textContent=grade;
+  document.getElementById('rdetail').textContent=
+    'مدة الامتحان: '+totalMin+' دقيقة  •  '+QTIME+' ثانية/سؤال  •  دقة الإجابة: '+pct+'%  •  أطول سلسلة: '+maxStreak+' 🔥';
+  document.getElementById('rgrid').innerHTML=
+    '<div class="rcard"><div class="rv" style="color:#4ade80">'+score+'</div><div class="rl">إجابة صحيحة</div></div>'+
+    '<div class="rcard"><div class="rv" style="color:#f87171">'+(200-score)+'</div><div class="rl">إجابة خاطئة</div></div>'+
+    '<div class="rcard"><div class="rv" style="color:#fbbf24">'+pct+'%</div><div class="rl">الدقة</div></div>'+
+    '<div class="rcard"><div class="rv" style="color:#c084fc">'+maxStreak+'</div><div class="rl">أطول سلسلة 🔥</div></div>';
+  const bd=document.getElementById('ubd'); bd.innerHTML='';
+  UNITS.forEach((u,i)=>{
+    const {c,t}=usc[i], p=t>0?Math.round(c/t*100):0;
+    const row=document.createElement('div'); row.className='ubrow';
+    row.innerHTML='<div class="ubicon">'+u.icon+'</div>'+
+      '<div class="ubinfo"><div class="ubname" style="color:'+u.color+'">'+u.name+'</div>'+
+      '<div class="ubbar"><div class="ubfill" style="width:'+p+'%;background:'+u.color+'"></div></div></div>'+
+      '<div class="ubsc" style="color:'+u.color+'">'+c+'/'+t+'</div>';
+    bd.appendChild(row);
+  });
+  if(pct>=70){confetti();setTimeout(confetti,400);}
+}
+</script>
+</body>
+</html>
